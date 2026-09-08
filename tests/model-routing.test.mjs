@@ -13,7 +13,7 @@ test('同项目任务分别经 OpenAI 与 Anthropic 原生协议执行，模型�
  await new Promise(r=>mock.listen(0,'127.0.0.1',r));const url=`http://127.0.0.1:${mock.address().port}`;
  const options=[{profileId:'a',provider:'OpenAI',model:'model-a',label:'Model A',connection:'api',available:true,efforts:['low','medium','high'],speeds:[{value:'priority'},{value:'fast'}]},{profileId:'b',provider:'Anthropic',model:'model-b',label:'Model B',connection:'api',available:true,efforts:['low','medium','high'],speeds:[{value:'priority'},{value:'fast'}]}];
  const config={mode:'pi',connection:'api',provider:'openai',model:'model-a',projectPath:project,dataDir:path.join(dir,'data'),distDir:path.resolve('dist'),maxTurns:10,maxRepairs:0,runTimeoutMs:20000,modelOptions:options,defaultModel:options[0],resolveModel:async choice=>({connection:'api',provider:choice.profileId==='b'?'anthropic':'openai',api:choice.profileId==='b'?'anthropic-messages':'openai-completions',model:choice.model,baseUrl:choice.profileId==='b'?url:url+'/v1',apiKey:choice.profileId==='b'?'public-key-b':'public-key-a'})};
- let runtime=await startRuntime(config);t.after(async()=>{await runtime?.close();await new Promise(r=>mock.close(r));await fs.rm(dir,{recursive:true,force:true});});
+ let runtime;t.after(async()=>{await runtime?.close();mock.closeAllConnections();await new Promise(r=>mock.close(r));await fs.rm(dir,{recursive:true,force:true});});runtime=await startRuntime(config);
  for(const [index,option] of options.entries()){
   const choice={...option,effort:index?'medium':'high',speed:index?'fast':'priority'};
   await runtime.engine.message('写入文件',null,undefined,choice);

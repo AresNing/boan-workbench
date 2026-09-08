@@ -4,7 +4,7 @@
 
 A local, task-first AI workbench for macOS. Assign a goal, review decisions and results, and let the workbench handle execution and verification. **Tasks advance automatically; you do not manage chat sessions.**
 
-This is the first public MVP, version **0.8.0**. It is under active development.
+This is the first public MVP, version **0.8.1**. It is under active development.
 
 ## What it does
 

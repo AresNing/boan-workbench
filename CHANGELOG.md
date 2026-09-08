@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1 — macOS compatibility — 2026-09-08
+
+- Use the system Perl flock interface on macOS so project execution also works where the lockf executable is unavailable. Kernel-held locks and crash recovery remain enforced.
+- Close the model fixture service even if runtime startup fails, so CI reports startup failures without hanging.
+
 ## 0.8.0 — Initial public MVP — 2026-09-08
 
 - Task-first macOS workbench with independent project execution, dependencies, bounded auxiliary work, verification and explicit acceptance.

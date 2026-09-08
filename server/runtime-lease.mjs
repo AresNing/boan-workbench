@@ -13,11 +13,14 @@ function bootIdentity(){
   throw Error('此系统尚未提供可靠的项目执行互斥');
 }
 function lockDescriptor(fd){
-  const mac=process.platform==='darwin',executable=mac?'/usr/bin/lockf':'/usr/bin/flock';
+  // macOS 13/14 do not ship lockf. System Perl exposes BSD flock without
+  // requiring developer tools or a separately installed native module.
+  const mac=process.platform==='darwin',executable=mac?'/usr/bin/perl':'/usr/bin/flock';
   return new Promise((resolve,reject)=>{
     // The child locks the inherited open file description. Our retained descriptor
-    // owns that same kernel lock after lockf/flock exits. It is never given to tools.
-    const child=spawn(executable,mac?['-t','0','3']:['-n','3'],{stdio:['ignore','ignore','ignore',fd],env:{PATH:'/usr/bin:/bin'}});
+    // owns that same kernel lock after the helper exits. It is never given to tools.
+    const args=mac?['-MFcntl=:flock','-e','open(my $lock, "+<&=3") or exit 2; flock($lock, LOCK_EX | LOCK_NB) or exit 1;']:['-n','3'];
+    const child=spawn(executable,args,{stdio:['ignore','ignore','ignore',fd],env:{PATH:'/usr/bin:/bin'}});
     const timer=setTimeout(()=>{child.kill();reject(Error('项目互斥检查超时，未启动执行'));},5000);
     child.once('error',e=>{clearTimeout(timer);reject(e);});
     child.once('exit',code=>{clearTimeout(timer);code===0?resolve():reject(Error('此项目或状态目录已有服务运行，请先关闭原服务。'));});
