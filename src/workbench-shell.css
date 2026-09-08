@@ -1,0 +1,62 @@
+/* Workbench surfaces: project navigation, a focused task, and optional context. */
+.app { --line:#e6e7e5; --muted:#788078; min-height:540px; }
+.sidebar, .desktop-app .sidebar { width:244px; background:var(--ui-soft); border-right:1px solid var(--line); color:var(--ui-fg); }
+.desktop-app .sidebar { padding-top:52px; }
+.desktop-app .sidebar:before { height:44px; }
+.brand, .desktop-app .brand { gap:10px; margin:6px 10px 24px; color:var(--ui-fg); }
+.brand-symbol{display:block;width:32px;height:32px;flex-shrink:0;padding:0;border-radius:8px;background:none;}
+
+.workspace-shortcuts { border-color:var(--ui-border); padding-bottom:12px; }
+.sidebar .nav-item { color:var(--ui-fg); border-radius:7px; }
+.sidebar .nav-item:hover { background:var(--ui-soft); color:var(--ui-fg); }
+.sidebar .nav-item.selected { background:var(--ui-soft); color:var(--ui-fg); }
+.project-navigation { padding-top:15px; }.project-navigation-heading { color:var(--ui-muted); }
+.project-navigation-heading button { color:var(--ui-muted); }.project-navigation-heading button:hover { color:var(--ui-fg); background:var(--ui-soft); }
+.project-navigation-item { margin-bottom:4px; }
+.project-navigation-item.current { background:var(--ui-soft); border-color:transparent; }
+.project-nav-open { padding:10px 8px; gap:7px; }.project-nav-open:hover { background:var(--ui-soft); }
+.project-nav-icon { color:var(--ui-muted); }.project-nav-copy strong { color:var(--ui-fg); }
+.project-nav-copy small { color:var(--ui-muted); margin-top:5px; }.project-nav-copy .attention { color:var(--ui-muted); }.project-nav-copy .running { color:var(--ui-fg); }
+.project-current-dot { background:var(--ui-soft); }.project-local-nav { border-color:var(--ui-border); margin-bottom:8px; }
+.project-local-nav button { color:var(--ui-muted); padding:7px 8px; }.project-local-nav button:hover { color:var(--ui-fg); background:var(--ui-soft); }.project-local-nav button.selected { color:var(--ui-fg); background:var(--ui-soft); }
+.sidebar-bottom .profile { border-color:var(--ui-border); color:var(--ui-fg); }.sidebar-bottom .user-avatar { background:var(--ui-soft); color:var(--ui-fg); }
+.sidebar-bottom .nav-item { font-size:11px; }.agent-online { color:var(--ui-muted); }.sidebar-bottom .profile small { color:var(--ui-muted); }
+.topbar { height:54px; padding:0 22px; }.breadcrumb { gap:10px; }.topbar-actions { gap:10px; }.mode-tag { font-size:11px; }
+.main-panel { background:var(--ui-surface); }
+.main-scroll { padding:26px max(28px,calc((100% - 780px)/2)) 22px; }
+.page-eyebrow { font-size:11px; margin-bottom:9px; }.page-title-row h1 { font-size:24px; letter-spacing:-.7px; }
+.overview { margin-top:10px; font-size:12px; }.summary-line { margin-top:16px; gap:22px; padding-bottom:22px; border-bottom:1px solid var(--ui-border); }
+.section-heading { margin:24px 0 16px; font-size:11px; }.section-heading > span:last-child { color:var(--ui-muted); }
+.focus-card { border:0; border-radius:0; box-shadow:none; overflow:visible; }
+.focus-card .card-top { padding:0; margin-bottom:14px; }.focus-card h2 { margin:0 0 12px; font-size:23px; line-height:1.4; letter-spacing:-.5px; }
+.task-goal { border:0; margin:0 0 20px; padding:0; }.task-goal > summary { display:flex; width:fit-content; align-items:center; gap:7px; font-size:11px; color:var(--ui-muted); padding:0; cursor:pointer; list-style:none; }.task-goal > summary::-webkit-details-marker { display:none; }.task-goal[open] > summary svg { transform:rotate(180deg); }.task-goal .goal-intro { margin:12px 0 0; color:var(--ui-fg); font-size:12px; }
+.outcome { margin:0; padding:16px 18px; border:0; border-radius:8px; background:var(--ui-soft); }.outcome-label { font-size:11px; }.outcome p { font-size:14px; line-height:1.9; }
+.task-resource-bar { display:flex; flex-wrap:wrap; gap:8px; margin-top:17px; }.task-resource-bar button { display:flex; align-items:center; gap:7px; padding:8px 11px; border:1px solid var(--ui-border); border-radius:6px; font-size:11px; color:var(--ui-muted); }.task-resource-bar button:hover { background:var(--ui-soft); color:var(--ui-fg); }
+.execution-entry-link { margin:14px 0 0; font-size:11px; }.focus-card .card-footer { padding:20px 0 6px; }.focus-card .verification-strip { margin:16px 0 0; }.button { font-size:12px; }
+.empty-card { padding:32px 20px; background:transparent; border:0; box-shadow:none; }.empty-card .clear-symbol { width:40px; height:40px; margin:0 auto 15px; }.empty-card h2 { font-size:18px; }.empty-card p { font-size:12px; margin:12px 0 20px; }
+.recent-outcomes { margin-top:14px; padding-top:18px; border-top:1px solid var(--ui-border); }.recent-outcomes-heading { display:flex; align-items:center; justify-content:space-between; color:var(--ui-muted); font-size:11px; margin-bottom:8px; }.recent-outcome { display:flex; align-items:center; gap:10px; text-align:left; width:100%; padding:12px 8px; border-radius:6px; color:var(--ui-muted); }.recent-outcome:hover { background:var(--ui-soft); }.recent-outcome span { min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:12px; color:var(--ui-fg); }.recent-outcome small { font-size:11px; }
+.composer-wrap { padding:14px max(28px,calc((100% - 780px)/2)) 17px; background:var(--ui-surface); }.composer { border-radius:16px; border-color:var(--ui-border); box-shadow:0 6px 22px #283d1910; background:var(--ui-surface); padding:14px 16px 12px; }.composer textarea { background:transparent; font-size:13px; min-height:55px; }.composer-scope { margin-bottom:9px; }.composer-bottom { padding-top:8px; }.composer-caption { padding:9px 4px 0; font-size:11px; }.send-button { border-radius:50%; width:30px; height:30px; }
+.context-panel { display:none; }.context-open .context-panel { display:flex; width:310px; position:static; padding:0 20px; box-shadow:none; }.context-header { height:54px; min-height:54px; gap:10px; }.context-header .status { margin-left:auto; }.context-section { padding:20px 0; }.context-section h3 { font-size:13px; }
+.sidebar-hidden .sidebar { display:none; }.desktop-app.sidebar-hidden .topbar { padding-left:90px; }.sidebar-hidden .workspace { margin-left:0; }
+.topbar .icon-button[aria-expanded=true] { background:var(--ui-soft); color:var(--ui-fg); }
+@media(max-width:1100px) { .context-open .context-panel { position:absolute; right:0; top:54px; bottom:0; z-index:4; box-shadow:-12px 0 28px #21301812; } }
+@media(max-width:650px) { .sidebar,.desktop-app .sidebar { width:59px; }.desktop-app .sidebar { padding-top:65px; }.main-scroll { padding:24px 20px 12px; }.composer-wrap { padding:14px 20px; }.topbar { padding:0 12px; }.breadcrumb { gap:5px; }.topbar-actions .mode-tag { display:none; }.context-open .context-panel { top:54px; width:calc(100% - 59px); max-width:310px; position:fixed; }.sidebar-hidden .context-panel { width:100%; }.brand,.desktop-app .brand { margin:0 0 24px; }.composer-caption span:last-child { display:none; } }
+
+/* A single task workspace: direct actions and quiet, optional details. */
+.task-filters { gap:8px; margin:20px 0 0; padding-bottom:18px; }
+.task-filters button { display:inline-flex; align-items:center; gap:7px; padding:7px 10px; color:var(--ui-muted); font-size:12px; border-radius:7px; white-space:nowrap; }
+.task-filters button:hover,.task-filters button[aria-pressed=true] { background:var(--ui-soft); color:var(--ui-fg); }
+.task-filters b { font-weight:500; font-variant-numeric:tabular-nums; }
+.task-filters .all-tasks-link { margin-left:auto; }
+.task-quick-list { margin-top:16px; border:1px solid var(--ui-border); border-radius:10px; padding:8px 12px; max-height:250px; overflow:auto; }
+.task-quick-list>.row-between { font-size:12px; color:var(--ui-muted); }.task-quick-list p { font-size:13px; color:var(--ui-muted); padding:12px 0; }
+.task-quick-row { display:flex; align-items:center; gap:10px; width:100%; padding:12px 4px; text-align:left; border-top:1px solid var(--ui-border); }
+.task-quick-row>span:first-child { flex:1; min-width:0; font-size:13px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }.task-quick-row .status { flex-shrink:0; font-size:11px; }.task-quick-row:hover { background:var(--ui-soft); }
+.focus-card { padding-top:24px; }.focus-card .card-top { margin:0 0 12px; }.task-resource-bar button { max-width:100%; }.task-resource-bar button>span { max-width:260px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.empty-card { padding:34px 16px 24px; }.empty-card p { margin-bottom:0; }.empty-card .clear-symbol { width:32px; height:32px; }
+.sidebar-bottom .profile { padding:12px; border-top:0; margin-top:0; }.sidebar-bottom .profile small { margin-top:0; }
+.settings-advanced { margin:0; border:1px solid var(--ui-border); border-radius:8px; padding:12px; }.settings-advanced summary { cursor:pointer; font-size:13px; color:var(--ui-muted); }.settings-advanced .settings-field { margin-top:16px; }
+.settings-save-row { position:sticky; bottom:0; background:var(--ui-surface); margin:0; padding:16px 0; z-index:1; }
+@media(max-width:650px) { .task-filters { gap:2px; flex-wrap:wrap; }.task-filters button { padding:6px; font-size:11px; }.task-filters .all-tasks-link { margin-left:0; }.task-resource-bar button>span { max-width:170px; }.settings-save-row { padding:14px 0; } }
+
+.workspace-connection-warning { margin: 10px 24px 0; flex-shrink: 0; }

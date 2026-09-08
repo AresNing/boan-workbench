@@ -1,0 +1,37 @@
+.history-help, .history-footnote, .history-empty { font-size: 11px; color:var(--ui-muted); line-height: 1.8; }
+.history-help { margin-bottom: 20px; }
+.history-day { font-size: 11px; font-weight: 500; color:var(--ui-muted); margin: 22px 0 10px; letter-spacing: .3px; }
+.dialog-body .history-session { margin: 0 0 10px; border:1px solid var(--ui-border); border-radius: 9px; background:var(--ui-surface); overflow: hidden; }
+.history-session > summary { display: flex; align-items: flex-start; gap: 11px; padding: 15px; list-style: none; }
+.history-session summary::-webkit-details-marker { display: none; }
+.history-session > summary:hover { background:var(--ui-soft); }
+.history-session-icon { display: grid; place-items: center; width: 30px; height: 30px; background:var(--ui-soft); color:var(--ui-muted); border-radius: 7px; flex-shrink: 0; }
+.history-session-overview { min-width: 0; flex: 1; }
+.history-session-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.history-session-top strong { font-weight: 500; font-size: 13px; color:var(--ui-fg); overflow-wrap: anywhere; }
+.history-session time { color:var(--ui-muted); white-space: nowrap; font-size:11px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.history-session-preview { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color:var(--ui-muted); font-size: 12px; line-height: 1.8; margin-top: 5px; overflow-wrap: anywhere; }
+.history-session-meta { display: block; margin-top: 6px; color:var(--ui-muted); font-size:11px; line-height: 1.8; }
+.history-failures { color:var(--ui-muted); }
+.history-chevron { color:var(--ui-muted); margin-top: 7px; flex-shrink: 0; }
+.history-session[open] > summary .history-chevron { transform: rotate(90deg); }
+.history-session-body { padding: 0 16px 6px 55px; border-top:1px solid var(--ui-border); }
+.history-record { padding: 12px 0; border-bottom:1px solid var(--ui-border); }
+.history-record:last-child { border-bottom: 0; }
+.history-record-heading { display: flex; align-items: baseline; gap: 8px; font-size: 11px; color:var(--ui-muted); }
+.history-record-heading strong { font-weight: 500; overflow-wrap: anywhere; }
+.history-record-heading > span { font-size:11px; }
+.history-record-heading time { margin-left: auto; }
+.history-record.failed .history-record-heading { color:var(--ui-muted); }
+.history-record p { font-size: 12px; line-height: 1.9; color:var(--ui-fg); white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 6px; }
+.dialog-body .history-record-detail { margin-top: 5px; }
+.history-record-detail summary { font-size: 11px; color:var(--ui-muted); }
+.dialog-body .history-operations { margin: 0; border-bottom:1px solid var(--ui-border); }
+.history-operations > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding: 12px 0; color:var(--ui-muted); list-style: none; }
+.history-operations > summary strong { font-size: 11px; font-weight: 500; }
+.history-operations > summary span { font-size:11px; color:var(--ui-muted); }
+.history-operations > summary time { margin-left: auto; }
+.history-operations[open] > summary > svg { transform: rotate(90deg); }
+.history-operations > div { padding-left: 16px; border-left:1px solid var(--ui-border); margin: 0 0 10px 6px; }
+.history-footnote { margin-top: 18px; font-size:11px; }
+@media(max-width:650px) { .history-session > summary { padding: 12px; gap: 8px; } .history-session-top { flex-direction: column; gap: 1px; } .history-session-body { padding-left: 16px; } .history-session-icon { width: 25px; height: 25px; } }

@@ -1,0 +1,22 @@
+.composer-permissions { flex-shrink: 0; }
+.permission-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border: 1px solid var(--ui-border); border-radius: 18px; background: transparent; color: var(--ui-muted); font: inherit; font-size: 11px; line-height: 18px; cursor: pointer; }
+.permission-chip:hover:not([aria-disabled=true]), .permission-chip[aria-expanded=true] { background: var(--ui-soft); color: var(--ui-fg); }
+.permission-chip:focus-visible, .permission-manage:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: 2px; }
+.permission-chip[aria-disabled=true] { opacity: .55; cursor: default; }
+.composer-permission-popup { position: fixed; inset: auto; margin: 0; padding: 6px; box-sizing: border-box; overflow: auto; border: 1px solid var(--ui-border); border-radius: 12px; background: var(--ui-surface); color: var(--ui-fg); box-shadow: 0 8px 30px #0002; font-family: inherit; }
+.composer-permission-popup::backdrop { background: transparent; }
+.permission-popup-heading { padding: 7px 9px; color: var(--ui-muted); font-size: 11px; }
+.permission-mode-option { display: flex; align-items: center; gap: 10px; padding: 10px 9px; border-radius: 7px; cursor: pointer; }
+.permission-mode-option:hover, .permission-mode-option:focus-within { background: var(--ui-soft); }
+.permission-mode-option:has(input:disabled) { opacity: .5; cursor: default; }
+.permission-mode-option input { width: 14px; height: 14px; margin: 0; accent-color: var(--ui-fg); flex-shrink: 0; }
+.permission-mode-option>span { display: grid; gap: 4px; }
+.permission-mode-option strong { font-size: 12px; font-weight: 500; }
+.permission-mode-option small { color: var(--ui-muted); font-size: 11px; line-height: 1.5; }
+.permission-popup-note { margin: 6px 9px 10px; font-size: 11px; line-height: 1.6; color: var(--ui-muted); }
+.permission-manage { display: flex; align-items: center; justify-content: space-between; width: 100%; border: 0; border-top: 1px solid var(--ui-border); padding: 11px 9px 6px; background: transparent; color: var(--ui-fg); font: inherit; font-size: 12px; cursor: pointer; }
+.permission-manage:hover { background: var(--ui-soft); }
+.composer-bottom .composer-submit-status { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.composer-bottom { gap: 10px; }
+.composer-caption { justify-content: flex-end; }
+@media (max-width: 650px) { .composer-bottom .composer-submit-status { display: none; } .composer-bottom .send-button { margin-left: auto; } }

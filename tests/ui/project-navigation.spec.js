@@ -1,0 +1,54 @@
+import { test, expect } from '@playwright/test';
+test('项目工作台一键切换、快捷搜索、同名目录、草稿隔离、失败反馈及小窗口', async ({page,request})=>{
+ const base=await (await request.get('/api/state')).json();
+ base.overview='所有成果已验收，可以开始新的工作。';base.tasks=[];base.attentionIds=[];base.events=[];base.messages=[];base.managerBusy=false;base.preparation=null;
+ const projects=Array.from({length:12},(_,i)=>({id:`p${i}`,name:i<2?'同名项目':`业务项目 ${i}`,path:`/workspace/team-${i}/app`,mode:'pi',status:i===11?'error':'ready',error:i===11?'目录暂不可用':'',active:i===2?2:0,attention:i===1?1:0,done:0,tasks:[],managerBusy:false}));
+ await page.route('**/api/state',route=>{const id=route.request().headers()['x-workbench-project']||'p0',p=projects.find(p=>p.id===id);return route.fulfill({json:{...base,project:{...base.project,id,path:p.path,name:p.name}}});});
+ await page.addInitScript(({projects,base})=>{
+  let activeId='p0',callback;window.projectCalls=[];
+  const snapshot=()=>({activeId,projects:projects.map(p=>({...p,selected:p.id===activeId})),switching:false});
+  window.desktop={getProjects:async()=>snapshot(),onProjects:fn=>{callback=fn;return ()=>{};},getSettings:async()=>({mode:'demo'}),onCommand:()=>()=>{},selectProject:async id=>{window.projectCalls.push(id);if(id==='p11')throw Error('目录暂不可用');activeId=id;callback(snapshot());return {activeId};}};
+  window.EventSource=class{constructor(url){this.url=url;window.navigationStream=this;const id=new URL(url,location.href).searchParams.get('projectId')||activeId,p=projects.find(p=>p.id===id);queueMicrotask(()=>this.onmessage?.({data:JSON.stringify({...base,project:{...base.project,id,path:p.path,name:p.name}})}));}close(){}};
+ },{projects,base});
+ await page.goto('/');await page.waitForSelector('.project-navigation-item');
+ const input=page.getByRole('textbox',{name:'交代工作或补充要求'});
+ await input.fill('项目一的草稿');
+ await expect(page.getByRole('complementary',{name:'任务背景'})).toBeHidden();
+ await page.getByRole('button',{name:'切换任务背景面板'}).click();
+ await expect(page.getByRole('complementary',{name:'任务背景'})).toBeVisible();
+ await page.getByRole('button',{name:'收起任务背景',exact:true}).click();
+ await page.getByRole('button',{name:'收起项目导航'}).click();
+ await expect(page.getByRole('complementary',{name:'项目工作空间'})).toBeHidden();
+ await expect(input).toHaveValue('项目一的草稿');
+ await page.reload();
+ await expect(page.getByRole('complementary',{name:'项目工作空间'})).toBeHidden();
+ await expect(input).toHaveValue('项目一的草稿');
+ await page.getByRole('button',{name:'展开项目导航'}).click();
+ await expect(page.getByRole('complementary',{name:'项目工作空间'})).toBeVisible();
+
+ await page.locator('.project-navigation-item').nth(1).getByRole('button').first().click();
+ await expect(page.locator('.project-navigation-item.current')).toContainText('1 项待处理');
+ await expect(input).toHaveValue('');await input.fill('项目二的草稿');
+ await page.keyboard.press('Control+k');
+ const dialog=page.getByRole('dialog',{name:'快速切换项目'}),search=page.getByRole('combobox',{name:'搜索项目'});
+ await expect(dialog).toBeVisible();await search.fill('team-0');await expect(dialog.getByRole('option')).toHaveCount(1);
+ await search.press('Enter');await expect(dialog).toHaveCount(0);await expect(input).toHaveValue('项目一的草稿');
+ await page.keyboard.press('Control+k');await search.fill('同名项目');await expect(dialog.getByRole('option')).toHaveCount(2);await expect(dialog).toContainText('/workspace/team-0/app');await expect(dialog).toContainText('/workspace/team-1/app');
+ await page.screenshot({path:'docs/screenshots/project-quick-switch.png'});
+ await search.fill('找不到');await expect(dialog).toContainText('没有找到项目');await search.press('Escape');await expect(dialog).toHaveCount(0);
+ await page.screenshot({path:'docs/screenshots/project-navigation.png'});
+ await page.getByRole('button',{name:'打开 业务项目 11 工作台',exact:true}).click();await expect(page.locator('.navigation-error')).toContainText('目录暂不可用');await expect(input).toHaveValue('项目一的草稿');
+ await expect(page.locator('.project-local-nav')).toHaveCount(1);await expect(page.locator('.project-navigation')).not.toContainText('会话');
+ await page.setViewportSize({width:800,height:620});
+ const last=page.getByRole('button',{name:'打开 业务项目 10 工作台',exact:true});await last.scrollIntoViewIfNeeded();await expect(last).toBeInViewport();
+ await page.keyboard.press('Control+k');await expect(dialog).toBeVisible();let box=await dialog.boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(800);
+ await search.fill('team-1/');await search.press('Enter');await expect(input).toHaveValue('项目二的草稿');
+ expect(await page.evaluate(()=>window.projectCalls)).toEqual(['p1','p0','p11','p1']);
+ let pendingRequest;await page.route('**/api/messages',route=>{pendingRequest=route;});
+ await page.getByRole('button',{name:'发送要求',exact:true}).click();await expect.poll(()=>Boolean(pendingRequest)).toBeTruthy();
+ await page.locator('.project-navigation-item').nth(0).getByRole('button').first().click();await expect(input).toHaveValue('项目一的草稿');
+ await pendingRequest.fulfill({json:{reply:'安排完成'}});
+ await expect.poll(()=>page.evaluate(()=>localStorage.getItem('draft:/workspace/team-1/app'))).toBe(null);
+ await page.locator('.project-navigation-item').nth(1).getByRole('button').first().click();await expect(input).toHaveValue('');
+
+});

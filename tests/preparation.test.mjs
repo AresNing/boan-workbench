@@ -1,0 +1,38 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import { Store } from '../server/store.mjs';
+import { Engine } from '../server/engine.mjs';
+import { createServer } from '../server/http.mjs';
+
+test('准备进度可实时读取，模型等待不虚增，失败不报完成，重试重置', async t => {
+  const dir = await fs.mkdtemp('/tmp/boan-preparation-');
+  const store = new Store(dir, { name: 'Test', path: dir, mode: 'pi' });
+  let progress, finish, fail;
+  const backend = { manage: async (_text, _state, _focus, _signal, update) => { progress = update; return await new Promise((resolve, reject) => { finish = resolve; fail = reject; }); } };
+  store.on('change', snapshot => assert.ok(Array.isArray(snapshot.tasks), '桌面订阅者必须收到完整状态快照'));
+  const engine = new Engine(store, backend, {});
+  const server = createServer(store, engine, { distDir: dir });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(async () => { await engine.close(); server.closeStreams(); await new Promise(resolve => server.close(resolve)); await fs.rm(dir, { recursive: true, force: true }); });
+  const state = async () => (await fetch(`http://127.0.0.1:${server.address().port}/api/state`)).json();
+  const pending = engine.message('询问进度', null, 'first');
+  assert.equal((await state()).preparation.percent, 20);
+  progress('connected'); assert.equal((await state()).preparation.percent, 40);
+  await new Promise(resolve => setTimeout(resolve, 40));
+  assert.equal((await state()).preparation.percent, 40);
+  await assert.rejects(engine.message('重复'), /上一条/);
+  assert.equal((await state()).preparation.requestId, 'first');
+  progress('planned'); assert.equal((await state()).preparation.percent, 60);
+  fail(new Error('模型连接断开')); await assert.rejects(pending, /断开/);
+  assert.equal((await state()).preparation.status, 'failed');
+  assert.equal((await state()).preparation.percent, 60);
+  assert.equal((await state()).managerBusy, false);
+  const retry = engine.message('再次询问', null, 'retry');
+  assert.equal((await state()).preparation.percent, 20);
+  finish({ reply: '没有新任务', actions: [] }); await retry;
+  const result = await state();
+  assert.equal(result.preparation.percent, 100); assert.equal(result.preparation.status, 'complete');
+  assert.equal(result.managerBusy, false); assert.equal(store.data.tasks.length, 0);
+  assert.ok(!JSON.parse(await fs.readFile(store.file)).preparation);
+});

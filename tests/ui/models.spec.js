@@ -1,0 +1,35 @@
+import { test, expect } from '@playwright/test';
+
+test('输入框按厂商选模型，草稿按项目和提交对象隔离，搜索不会发送任务', async ({page,request})=>{
+ const base=await(await request.get('/api/state')).json();
+ const a={profileId:'a',model:'model-a',label:'Model A',provider:'OpenAI',connection:'api',available:true,efforts:['low','medium','high'],speeds:[{value:'standard',label:'标准'},{value:'fast',label:'快速'}]},b={profileId:'b',model:'model-b',label:'Model B',provider:'Anthropic',connection:'api',available:true,efforts:['low','medium','high'],speeds:[{value:'standard',label:'标准'},{value:'fast',label:'快速'}]};
+ const state={...base,project:{...base.project,mode:'pi'},tasks:[{...base.tasks[0],id:'task-a',title:'现有任务',status:'running',decision:null,modelSelection:a}],attentionIds:[],modelOptions:[a,b,{...b,profileId:'unavailable',model:'offline',label:'Offline',available:false}],defaultModel:a,managerBusy:false,preparation:null};
+ await page.route('**/api/state',route=>route.fulfill({json:state}));
+ await page.addInitScript(state=>{window.EventSource=class{constructor(){queueMicrotask(()=>this.onmessage?.({data:JSON.stringify(state)}));}close(){}};},state);
+ const messages=[];await page.route('**/api/messages',route=>{messages.push(route.request().postDataJSON());return route.fulfill({json:{reply:'已提交'}});});
+ await page.goto('/');const input=page.getByRole('textbox',{name:'交代工作或补充要求'});
+ await input.fill('保留草稿');await page.getByRole('button',{name:'任务模型：Model A',exact:true}).click();
+ const dialog=page.getByRole('dialog',{name:'选择任务模型'}),search=page.getByRole('textbox',{name:'搜索模型或厂商'});
+ await search.fill('Anthropic');await search.press('Enter');expect(messages).toHaveLength(0);
+ await expect(dialog.getByRole('button',{name:/Offline/})).toBeDisabled();
+ await dialog.getByRole('button',{name:/^Model B/}).click();await expect(input).toHaveValue('保留草稿');
+ await page.getByRole('button',{name:'任务参数',exact:true}).click();
+ await page.getByRole('combobox',{name:'思考强度（effort）',exact:true}).click();await page.getByRole('option',{name:'高',exact:true}).click();
+ await page.getByRole('combobox',{name:'速度（speed）',exact:true}).click();await page.getByRole('option',{name:'快速',exact:true}).click();
+ await page.reload();await expect(page.getByRole('button',{name:'任务模型：Model B',exact:true})).toBeVisible();await expect(input).toHaveValue('保留草稿');
+ await page.getByRole('button',{name:'任务参数',exact:true}).click();
+ await expect(page.getByRole('combobox',{name:'思考强度（effort）'})).toContainText('高');await expect(page.getByRole('combobox',{name:'速度（speed）'})).toContainText('快速');
+ await page.keyboard.press('Escape');
+ await page.getByRole('button',{name:'补充要求',exact:true}).click();await expect(page.getByRole('button',{name:'任务模型：Model A',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'发送要求',exact:true}).click();await expect.poll(()=>messages.length).toBe(1);expect(messages[0]).toMatchObject({focusId:'task-a',modelSelection:{profileId:'a',model:'model-a'}});
+ await page.getByRole('button',{name:'新建任务',exact:true}).click();await expect(page.getByRole('button',{name:'任务模型：Model B',exact:true})).toBeVisible();
+ await input.fill('另一项工作');await page.getByRole('button',{name:'发送要求',exact:true}).click();await expect.poll(()=>messages.length).toBe(2);expect(messages[1]).toMatchObject({focusId:null,modelSelection:{profileId:'b',model:'model-b',effort:'high',speed:'fast'}});
+ await page.getByRole('button',{name:'任务模型：Model B',exact:true}).click();await page.screenshot({path:'docs/screenshots/task-model-picker-light.png'});
+ await page.emulateMedia({colorScheme:'dark'});await page.setViewportSize({width:800,height:620});await expect(dialog).toBeInViewport();await page.screenshot({path:'docs/screenshots/task-model-picker-dark.png'});
+ await search.press('Escape');await expect(dialog).toBeHidden();expect(messages).toHaveLength(2);
+ await page.getByRole('button',{name:'任务模型：Model B',exact:true}).click();await dialog.getByRole('button',{name:/^Model A/}).click();
+ await page.getByRole('button',{name:'任务参数',exact:true}).click();
+ await expect(page.getByRole('combobox',{name:'思考强度（effort）'})).toContainText('默认思考');await expect(page.getByRole('combobox',{name:'速度（speed）'})).toContainText('标准');
+ await page.keyboard.press('Escape');
+ await page.setViewportSize({width:400,height:740});await page.locator('.composer').scrollIntoViewIfNeeded();await expect(page.getByRole('button',{name:'发送要求',exact:true})).toBeInViewport();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:'docs/screenshots/task-parameters-small.png'});
+});

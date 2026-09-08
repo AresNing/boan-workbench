@@ -1,0 +1,47 @@
+.settings-dialog { width: min(860px, calc(100vw - 40px)); max-width: 860px; height: min(680px, calc(100dvh - 64px)); max-height: calc(100dvh - 64px); padding: 0; overflow: hidden; }
+.settings-dialog .dialog-heading { padding: 19px 24px; margin: 0; }
+.settings-dialog .dialog-body { padding: 0; overflow: hidden; height: calc(100% - 69px); }
+.desktop-settings.settings-layout { display: grid; grid-template-columns: 176px minmax(0, 1fr); height: 100%; gap: 0; }
+.settings-nav { display: flex; flex-direction: column; gap: 4px; padding: 18px 10px; border-right: 1px solid var(--ui-border); background: var(--ui-soft); }
+.settings-nav button { display: flex; align-items: center; gap: 10px; padding: 11px 12px; text-align: left; color: var(--ui-muted); background: transparent; border: 0; border-radius: 7px; font: inherit; font-size: 13px; cursor: pointer; }
+.settings-nav button:hover, .settings-nav button[aria-current=page] { color: var(--ui-fg); background: var(--ui-surface); }
+.settings-nav button:focus-visible { outline: 2px solid var(--ui-primary); outline-offset: -2px; }
+.settings-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+.settings-section { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding: 25px 28px; scrollbar-gutter: stable; }
+.settings-section>h3 { margin: 0 0 2px; font-size: 17px; font-weight: 550; }
+.settings-section>* { flex-shrink: 0; }
+.settings-section .mode-option { padding: 12px; }
+.settings-section .mode-option strong { font-size: 13px; }
+.settings-section .mode-option span { font-size: 11px; margin-top: 5px; }
+.settings-section .settings-description { font-size: 12px; line-height: 1.7; color: var(--ui-muted); margin: 0; }
+.settings-section .settings-advanced { border: 0; border-top: 1px solid var(--ui-border); border-radius: 0; padding: 16px 0 0; }
+.settings-section .settings-advanced .key-storage-note { margin-top: 12px; }
+.settings-section .permission-settings { border: 0; padding: 0; margin: 0; }
+.settings-section .permission-settings>h3 { display: none; }
+.settings-section .permission-grants { border-top: 1px solid var(--ui-border); padding-top: 20px; }
+.settings-main>.settings-save-row { position: static; flex-shrink: 0; padding: 15px 24px; min-height: 68px; gap: 12px; }
+.settings-main>.error-banner { margin: 0 24px 12px; flex-shrink: 0; }
+.settings-about { margin-top: 14px; padding-top: 20px; border-top: 1px solid var(--ui-border); display: grid; gap: 7px; font-size: 12px; }
+.settings-about span { color: var(--ui-muted); }
+.settings-section .settings-links { display: grid; }
+@media (max-width: 650px) {
+  .settings-dialog { width: calc(100vw - 24px); height: calc(100dvh - 32px); max-height: calc(100dvh - 32px); }
+  .desktop-settings.settings-layout { grid-template-columns: 1fr; grid-template-rows: auto minmax(0,1fr); }
+  .settings-nav { flex-direction: row; padding: 8px; border-right: 0; border-bottom: 1px solid var(--ui-border); overflow-x: auto; }
+  .settings-nav button { flex-shrink: 0; padding: 9px; font-size: 12px; gap: 6px; }
+  .settings-section { padding: 20px; }
+  .settings-main>.settings-save-row { padding: 12px 20px; }
+  .settings-section .settings-grid { grid-template-columns: 1fr; }
+}
+.provider-settings { display:grid;gap:14px;border-bottom:1px solid var(--ui-border);padding-bottom:20px; }
+.provider-settings h4 { margin:0;font-size:13px; }
+.provider-card { display:flex;align-items:center;gap:6px;padding:12px;border:1px solid var(--ui-border);border-radius:8px; }
+.provider-card>div { flex:1;min-width:0;display:grid;gap:5px; }
+.provider-card strong {font-size:12px;font-weight:500;}
+.provider-card small {font-size:11px;color:var(--ui-muted);overflow-wrap:anywhere;}
+.provider-editor {display:grid;gap:14px;background:var(--ui-soft);padding:14px;border-radius:9px;}
+.provider-editor textarea {width:100%;resize:vertical;border:1px solid var(--ui-border);background:var(--ui-surface);color:var(--ui-fg);padding:9px;font:inherit;font-size:12px;border-radius:6px;}
+.provider-editor .settings-auth-actions {display:flex;gap:8px;}
+
+.mode-options[aria-label="模型连接方式"] { grid-template-columns:repeat(3,minmax(0,1fr)); }
+@media(max-width:650px){ .mode-options[aria-label="模型连接方式"] {grid-template-columns:1fr;} }

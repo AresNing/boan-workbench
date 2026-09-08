@@ -1,0 +1,52 @@
+appId: com.boan.workbench
+productName: Boan Workbench
+copyright: Copyright © 2026 Boan Workbench
+directories:
+  output: release/${version}
+  buildResources: desktop/assets
+files:
+  - desktop/**/*
+  - server/**/*
+  - shared/**/*
+  - dist/**/*
+  - package.json
+  - '!desktop/assets/*.iconset/**/*'
+  - '!**/*.map'
+  - '!**/auth.json*'
+  - '!**/credentials.json'
+  - '!**/.credentials.json*'
+  - '!**/desktop-settings.json*'
+  - '!**/model-profiles.json*'
+  - '!**/.env*'
+  - '!**/node_modules/**/{test,tests,example,examples}/**/*'
+asar: true
+asarUnpack:
+  - '**/node_modules/@anthropic-ai/claude-agent-sdk-*/claude'
+  - '**/*.node'
+  - '**/node_modules/@openai/codex-*/vendor/**/*'
+npmRebuild: false
+mac:
+  category: public.app-category.developer-tools
+  icon: desktop/assets/icon.icns
+  minimumSystemVersion: '13.0'
+  identity: '-'
+  notarize: false
+  target:
+    - target: dmg
+      arch: [arm64]
+    - target: zip
+      arch: [arm64]
+  artifactName: Boan-Workbench-${version}-mac-${arch}.${ext}
+dmg:
+  title: Boan Workbench
+  contents:
+    - x: 140
+      y: 170
+    - x: 430
+      y: 170
+      type: link
+      path: /Applications
+publish: null
+
+# Successful builds retain only the three newest version numbers.
+afterAllArtifactBuild: ./scripts/prune-releases.mjs

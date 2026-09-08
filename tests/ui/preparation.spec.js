@@ -1,0 +1,70 @@
+import { test, expect } from '@playwright/test';
+
+test('前置准备显示真实阶段、等待时间、失败与重试，并保留输入', async ({ page, request }) => {
+  const initial = await (await request.get('/api/state')).json();
+  initial.managerBusy = false; initial.preparation = null;
+  await page.route('**/api/state', route => route.fulfill({ json: initial }));
+  await page.addInitScript(() => {
+    window.EventSource = class { constructor() { window.preparationStream = this; } close() {} };
+  });
+  let pendingRoute, body;
+  await page.route('**/api/messages', route => { pendingRoute = route; body = route.request().postDataJSON(); });
+  await page.goto('/');
+  await page.waitForFunction(() => Boolean(window.preparationStream?.onmessage));
+  const push = async (percent, status = 'running') => page.evaluate(({ initial, body, percent, status }) => {
+    window.preparationStream.onmessage({ data: JSON.stringify({ ...initial, managerBusy: status === 'running', preparation: { requestId: body?.requestId, startedAt: new Date(Date.now() - 22000).toISOString(), updatedAt: new Date().toISOString(), percent, status, title: percent === 40 ? '理解要求' : percent === 60 ? '接收任务安排' : '准备未完成', detail: '模型正在结合项目上下文，判断要求并生成安排。' } }) });
+  }, { initial, body, percent, status });
+  await page.evaluate(initial => window.preparationStream.onmessage({ data: JSON.stringify(initial) }), initial);
+  const input = page.getByRole('textbox', { name: '交代工作或补充要求' });
+  await input.fill('这个项目目前有多少个文件'); await page.getByRole('button', { name: '发送要求', exact: true }).click();
+  await expect.poll(() => Boolean(pendingRoute)).toBeTruthy();
+  await push(40);
+  const bar = page.getByRole('progressbar', { name: '前置准备阶段进度' });
+  await expect(bar).toHaveAttribute('aria-valuenow', '40');
+  await expect(page.getByText('当前步骤耗时较长，完成后会更新进度；无需重复发送。')).toBeVisible();
+  await expect(input).toHaveAttribute('readonly', '');
+  await expect(page.getByRole('button', { name: '发送要求', exact: true })).toBeDisabled();
+  await expect.poll(() => bar.evaluate(el => Math.round(el.firstElementChild.getBoundingClientRect().width / el.getBoundingClientRect().width * 100))).toBe(40);
+  await page.screenshot({ path: 'docs/screenshots/preparation-progress.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('.preparation-progress').scrollIntoViewIfNeeded();
+  const bounds = await page.locator('.preparation-progress').boundingBox();
+  expect(bounds.x).toBeGreaterThanOrEqual(0); expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
+  await page.screenshot({ path: 'docs/screenshots/preparation-mobile.png' });
+  await page.evaluate(() => window.preparationStream.onerror());
+  await expect(page.getByText('连接中断，正在重连以确认后台状态，请勿重复提交。')).toBeVisible();
+  await push(60, 'failed');
+  await pendingRoute.fulfill({ status: 400, json: { error: '模型连接中断，请重试' } });
+  await expect(input).toHaveValue('这个项目目前有多少个文件');
+  await expect(page.getByRole('alert')).toContainText('模型连接中断');
+  await expect(bar).toHaveAttribute('aria-valuenow', '60');
+  pendingRoute = null;
+  await page.getByRole('button', { name: '发送要求', exact: true }).click();
+  await expect.poll(() => Boolean(pendingRoute)).toBeTruthy();
+  await expect(bar).toHaveAttribute('aria-valuenow', '0');
+  await push(40); await push(100, 'complete');
+  await pendingRoute.fulfill({ json: { reply: '安排已保存' } });
+  await expect(bar).toHaveCount(0);
+  await expect(page.locator('.preparation-progress')).toHaveCount(0);
+  await expect(page.locator('.preparation-ready')).toHaveText('已提交');
+  await expect(input).toHaveValue('');
+  await page.locator('.composer').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'docs/screenshots/preparation-ready-mobile.png' });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({ path: 'docs/screenshots/preparation-ready.png' });
+  pendingRoute = null;
+  await input.fill('再安排一项工作');
+  await page.getByRole('button', { name: '发送要求', exact: true }).click();
+  await expect.poll(() => Boolean(pendingRoute)).toBeTruthy();
+  await expect(page.locator('.preparation-ready')).toHaveCount(0);
+  await expect(bar).toHaveAttribute('aria-valuenow', '0');
+  await push(100, 'complete');
+  await pendingRoute.fulfill({ json: { reply: '已保存' } });
+});
+
+test('响应中断和刷新后重发沿用请求标识，成功后新输入使用新标识',async({page})=>{
+ const ids=[];await page.route('**/api/messages',async route=>{ids.push(route.request().postDataJSON().requestId);if(ids.length===1)await route.abort('failed');else await route.fulfill({json:{reply:'安排已保存'}});});
+ await page.goto('/');const input=page.getByRole('textbox',{name:'交代工作或补充要求'}),send=page.getByRole('button',{name:'发送要求',exact:true});
+ await input.fill('可安全重试的目标');await send.click();await expect(page.getByRole('alert')).toBeVisible();await expect(send).toBeEnabled();await page.reload();await expect(input).toHaveValue('可安全重试的目标');await send.click();await expect(input).toHaveValue('');expect(ids).toHaveLength(2);expect(ids[1]).toBe(ids[0]);
+ await input.fill('另一个目标');await send.click();await expect(input).toHaveValue('');expect(ids[2]).not.toBe(ids[1]);
+});

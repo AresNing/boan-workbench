@@ -1,0 +1,67 @@
+import { test, expect } from '@playwright/test';
+
+test('空闲工作台回看最近成果、展开目标与背景，保留待发送内容', async ({page, request}) => {
+  const base = await (await request.get('/api/state')).json();
+  const original = base.tasks[0];
+  const tasks = Array.from({length:4}, (_,i) => ({...original, id:`done-${i}`, title:`已交付事项 ${i}`, goal:`事项 ${i} 的完整目标与范围`, status:'done', summary:'成果已验收', decision:null, updatedAt:`2026-09-07T00:0${i}:00.000Z`, artifacts:['result.txt']}));
+  const state = {...base,tasks,attentionIds:[],events:[],messages:[],overview:'所有成果已验收，可以开始新的工作。'};
+  await page.route('**/api/state', route => route.fulfill({json:state}));
+  await page.route('**/api/artifact?*', route => route.fulfill({json:{path:'result.txt',content:'已保存的成果内容'}}));
+  await page.addInitScript(state => { window.EventSource = class { constructor(){queueMicrotask(()=>this.onmessage?.({data:JSON.stringify(state)}));} close(){} }; }, state);
+  await page.goto('/');
+  const recent=page.getByRole('region',{name:'最近成果'});
+  await expect(recent.locator('.recent-outcome')).toHaveCount(3);
+  await expect(recent.locator('.recent-outcome').first()).toContainText('已交付事项 3');
+  const input=page.getByRole('textbox',{name:'交代工作或补充要求'});
+  await input.fill('尚未发送的要求');
+  await recent.getByRole('button',{name:'已交付事项 3',exact:false}).click();
+  await expect(page.locator('.focus-card h2')).toHaveText('已交付事项 3');
+  await expect(page.locator('.task-goal .goal-intro')).toBeHidden();
+  await page.locator('.task-goal summary').click();
+  await expect(page.locator('.task-goal .goal-intro')).toHaveText('事项 3 的完整目标与范围');
+
+  await page.getByRole('button',{name:'result.txt',exact:true}).click();
+  await expect(page.locator('#detail-panel-results .artifact-preview pre')).toHaveText('已保存的成果内容');
+  await page.getByRole('button',{name:'收起任务背景'}).click();
+  await page.getByRole('button',{name:'任务详情',exact:true}).click();
+  await page.setViewportSize({width:800,height:620});
+  await expect(page.getByRole('button',{name:'收起任务背景',exact:true})).toBeInViewport();
+  await page.screenshot({path:'docs/screenshots/workbench-context.png'});
+  await page.getByRole('button',{name:'收起任务背景',exact:true}).click();
+  await expect(input).toHaveValue('尚未发送的要求');
+  await page.setViewportSize({width:1440,height:1000});
+  await page.screenshot({path:'docs/screenshots/workbench-focused.png'});
+});
+
+test('外观跟随系统，手动切换和重启保留，浮层与输入区同步', async ({page}) => {
+  await page.emulateMedia({colorScheme:'dark'});
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
+  await expect(page.locator('.focus-card')).toBeVisible();
+  await expect(page.locator('.brand')).toHaveText('');
+  await expect(page.locator('.brand img[alt="Boan"]')).toBeVisible();
+  await expect.poll(() => page.locator('.brand img').evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
+  await page.getByRole('combobox',{name:'外观',exact:true}).click();
+  await page.getByRole('option',{name:'浅色外观',exact:true}).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme','light');
+  const input=page.getByRole('textbox',{name:'交代工作或补充要求'});
+  await input.fill('外观调整期间保留的草稿');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme','light');
+  await expect(input).toHaveValue('外观调整期间保留的草稿');
+  await page.screenshot({path:'docs/screenshots/t3-light.png'});
+  await page.getByRole('combobox',{name:'外观',exact:true}).click();
+  await page.getByRole('option',{name:'跟随系统',exact:true}).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
+  await page.screenshot({path:'docs/screenshots/t3-dark.png'});
+  await page.getByRole('combobox',{name:'沟通范围',exact:true}).click();
+  await expect(page.getByRole('listbox',{name:'沟通范围'})).toBeVisible();
+  await page.screenshot({path:'docs/screenshots/t3-dark-menu.png'});
+  await page.keyboard.press('Escape');
+  await page.getByRole('button',{name:'查看工作记录',exact:true}).click();
+  await page.screenshot({path:'docs/screenshots/t3-dark-history.png'});
+  await page.getByRole('button',{name:'关闭面板',exact:true}).click();
+  await page.emulateMedia({colorScheme:'light'});
+  await expect(page.locator('html')).toHaveAttribute('data-theme','light');
+  await expect(input).toHaveValue('外观调整期间保留的草稿');
+});

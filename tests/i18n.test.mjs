@@ -1,0 +1,8 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import {parse} from '@babel/parser';
+import en from '../shared/en.json' with {type:'json'};import {translate,translateSystem,resolveLanguage} from '../shared/i18n.mjs';
+test('translation catalog covers explicit UI keys and preserves interpolation boundaries',async()=>{
+ const missing=[];for(const name of await fs.readdir('src')){if(!name.endsWith('.jsx'))continue;const ast=parse(await fs.readFile('src/'+name,'utf8'),{sourceType:'module',plugins:['jsx']});const visit=node=>{if(!node||typeof node!=='object')return;if(node.type==='CallExpression'&&['t','tr'].includes(node.callee?.name)&&node.arguments[0]?.type==='StringLiteral'){const key=node.arguments[0].value;if(!Object.hasOwn(en,key))missing.push(name+': '+key);}for(const value of Object.values(node))if(Array.isArray(value))value.forEach(visit);else if(value&&typeof value==='object')visit(value);};visit(ast);}
+ assert.deepEqual(missing,[]);const slots=s=>[...s.matchAll(/\{\d+\}/g)].map(m=>m[0]).sort();for(const [key,value]of Object.entries(en)){assert.ok(value.trim());assert.deepEqual(slots(value),slots(key),key);if(key!=='简体中文')assert.doesNotMatch(value,/\p{Script=Han}/u,key);}
+ assert.equal(translate('en','打开 {0} 工作台','项目 {1}'),'Open 项目 {1} workbench');assert.equal(translate('zh','打开 {0} 工作台','项目'),'打开 项目 工作台');assert.equal(translateSystem('en','已整理 8 项任务与最近沟通，正在建立模型会话。'),'Collected 8 tasks and recent messages. Connecting to the model.');assert.equal(translateSystem('en','用户自己的内容'),'用户自己的内容');
+ assert.equal(resolveLanguage('system','zh-TW'),'zh');assert.equal(resolveLanguage('system','en-GB'),'en');assert.equal(resolveLanguage('en','zh-CN'),'en');
+});

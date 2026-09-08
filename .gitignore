@@ -1,0 +1,39 @@
+node_modules/
+dist/
+.workbench/
+.env
+*.log
+coverage/
+test-results/
+playwright-report/
+release/
+desktop/assets/icon.iconset/
+# Local credentials must never be committed, even if accidentally copied here.
+auth.json
+auth.json.*
+credentials.json
+desktop-settings.json
+desktop-settings.json.tmp
+model-profiles.json
+model-profiles.json.*
+.credentials.json
+.credentials.json.*
+
+# Private task outputs and imports in this development workspace.
+boan-inputs/
+/新建文本.txt
+/landscape-92d2b318-20260907.svg
+
+# Local historical validation and screenshots are not public source.
+/docs/*
+!/docs/architecture.md
+# Include selected, isolated UI screenshots only when explicitly reviewed.
+.DS_Store
+*.dmg
+*.zip
+*.sqlite*
+*.db*
+.env.*
+!.env.example
+!/docs/project-agent-spec.md
+!/docs/testing.md

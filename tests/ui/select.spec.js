@@ -1,0 +1,33 @@
+import { test, expect } from '@playwright/test';
+
+test('统一下拉：鼠标、键盘、关闭、长标题和窗口边界，选择不发送任务', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.focus-card')).toBeVisible();
+  const input = page.getByRole('textbox', { name: '交代工作或补充要求' });
+  await input.fill('未发送的草稿');
+  let posts = 0; page.on('request', r => { if (r.method() === 'POST') posts++; });
+  const select = page.getByRole('combobox', { name: '沟通范围' });
+  await select.click();
+  const menu = page.getByRole('listbox', { name: '沟通范围' });
+  await expect(menu).toBeVisible();
+  await expect(page.getByRole('option', { name: '新任务', exact: true })).toHaveAttribute('aria-selected', 'true');
+  expect(await menu.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(255, 255, 255)');
+  await page.screenshot({ path: 'docs/screenshots/dropdown-scope.png' });
+  const rect = await menu.boundingBox(), trigger = await select.boundingBox();
+  expect(rect.y + rect.height).toBeLessThanOrEqual(trigger.y);
+  await select.press('End'); await select.press('Enter');
+  await expect(menu).not.toBeVisible(); await expect(select).toContainText('补充要求');
+  await select.press('ArrowDown'); await select.press('Home'); await select.press('Escape');
+  await expect(select).toContainText('补充要求'); await expect(select).toBeFocused();
+  await select.click(); await input.click(); await expect(menu).not.toBeVisible();
+  await select.focus(); await select.press('Space'); await select.press('Home'); await select.press('Enter');
+  await expect(select).toContainText('新任务');
+  await select.click(); await select.press('Tab'); await expect(menu).not.toBeVisible(); await expect(input).toBeFocused();
+  await expect(input).toHaveValue('未发送的草稿'); expect(posts).toBe(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await select.click();
+  const small = await menu.boundingBox();
+  expect(small.x).toBeGreaterThanOrEqual(0); expect(small.x + small.width).toBeLessThanOrEqual(390);
+  expect(small.y).toBeGreaterThanOrEqual(0); expect(small.y + small.height).toBeLessThanOrEqual(844);
+  await page.screenshot({ path: 'docs/screenshots/dropdown-mobile.png' });
+});

@@ -1,0 +1,30 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { pruneReleases } from '../scripts/prune-releases.mjs';
+
+test('历史版本按数字排序保留三个，同版本产物合并计数，预览无写入并保留无关文件', async t => {
+  const dir = await fs.mkdtemp('/tmp/boan-retention-'); t.after(() => fs.rm(dir, { recursive: true, force: true }));
+  const root = path.join(dir, 'release'); await fs.mkdir(root);
+  for (const version of ['0.3.1','0.3.2','0.3.3','0.3.4','0.3.5','0.3.10']) await fs.mkdir(path.join(root, version));
+  await fs.writeFile(path.join(root, 'Boan-Workbench-0.3.1-mac-arm64.zip'), 'old');
+  await fs.writeFile(path.join(root, 'notes.txt'), 'keep');
+  await fs.symlink(dir, path.join(root, '0.1.0'));
+  const plan = await pruneReleases({ root });
+  assert.deepEqual(plan.keep, ['0.3.10','0.3.5','0.3.4']);
+  assert.deepEqual(plan.remove.sort(), ['0.3.1','0.3.2','0.3.3','Boan-Workbench-0.3.1-mac-arm64.zip']);
+  await fs.access(path.join(root, '0.3.1'));
+  await assert.rejects(pruneReleases({ root, apply: true, runningPaths: [path.join(root, '0.3.1/mac-arm64/app')] }), /仍在运行/);
+  await fs.access(path.join(root, 'Boan-Workbench-0.3.1-mac-arm64.zip'));
+  await pruneReleases({ root, apply: true, runningPaths: [] });
+  await assert.rejects(fs.access(path.join(root, '0.3.1')));
+  await assert.rejects(fs.access(path.join(root, '0.3.2')));
+  await assert.rejects(fs.access(path.join(root, '0.3.3')));
+  for (const version of plan.keep) await fs.access(path.join(root, version));
+  await fs.access(path.join(root, 'notes.txt'));
+  assert.equal((await fs.lstat(path.join(root, '0.1.0'))).isSymbolicLink(), true);
+  assert.deepEqual((await pruneReleases({ root, apply: true, runningPaths: [] })).deleted, []);
+  const linkedRoot = path.join(dir, 'linked'); await fs.symlink(root, linkedRoot);
+  await assert.rejects(pruneReleases({ root: linkedRoot, apply: true, runningPaths: [] }), /符号链接/);
+});

@@ -1,0 +1,58 @@
+{
+  "name": "agent-workbench",
+  "version": "0.8.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "vite build",
+    "start": "node server/index.mjs",
+    "demo": "node server/index.mjs --demo",
+    "test:ui": "playwright test",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "check": "npm run test && npm run build",
+    "desktop": "npm run build && electron .",
+    "desktop:pack": "npm run build && electron-builder --mac --arm64 --dir --publish never",
+    "desktop:dist": "npm run build && electron-builder --mac --arm64 --publish never",
+    "test:desktop": "node --test --test-concurrency=1 tests/desktop/*.test.mjs",
+    "desktop:icon": "CLANG_MODULE_CACHE_PATH=/tmp/boan-swift-cache swift scripts/create-icon.swift && iconutil -c icns desktop/assets/icon.iconset -o desktop/assets/icon.icns",
+    "desktop:setup": "node node_modules/electron/install.js",
+    "predesktop": "npm run desktop:setup",
+    "predesktop:pack": "npm run desktop:setup",
+    "predesktop:dist": "npm run desktop:setup",
+    "desktop:dist:intel": "npm run build && electron-builder --mac --x64 --publish never",
+    "release:prune": "node scripts/prune-releases.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.263",
+    "@earendil-works/pi-coding-agent": "0.85.1",
+    "@openai/codex": "0.153.4",
+    "@sinclair/typebox": "0.34.41",
+    "lucide-react": "0.468.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "zod": "4.1.13"
+  },
+  "devDependencies": {
+    "@babel/parser": "7.28.5",
+    "@playwright/test": "^1.57.0",
+    "electron": "44.2.0",
+    "electron-builder": "26.15.3",
+    "vite": "6.4.3"
+  },
+  "main": "desktop/main.mjs",
+  "description": "Boan local AI agent desktop workbench",
+  "author": "Boan Workbench",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AresNing/boan-workbench.git"
+  },
+  "homepage": "https://github.com/AresNing/boan-workbench",
+  "bugs": {
+    "url": "https://github.com/AresNing/boan-workbench/issues"
+  }
+}
