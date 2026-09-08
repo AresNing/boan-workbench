@@ -20,3 +20,7 @@ Use temporary projects for tests. Do not submit private credentials, account dat
 - Keep Chinese and English README instructions consistent. Test switching languages without clearing drafts or restarting tasks.
 
 By contributing, you agree to license your contribution under the project's MIT License. Third-party code must retain its original notices and compatible distribution terms.
+
+## README screenshots
+
+Run `npm run build && node scripts/readme-screenshots.mjs` to regenerate the three README images. The script uses headless Chromium, the real built UI and deterministic English fixtures. It does not start an execution backend, read app data or contact model services. Review every image before committing it; never substitute screenshots of a personal workspace.

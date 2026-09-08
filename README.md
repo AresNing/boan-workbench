@@ -6,6 +6,18 @@ A local, task-first AI workbench for macOS. Assign a goal, review decisions and 
 
 This is the first public MVP, version **0.8.1**. It is under active development.
 
+## About Boan
+
+Boan keeps AI coding work organized around projects and deliverables. A task carries its goal, constraints, progress, decisions, files and verification evidence together. Use it to fix a bug, build a feature, update documentation or follow several local projects without organizing separate chat sessions.
+
+1. **Describe the work.** Select a project, write the goal, and optionally attach files or choose model settings.
+2. **Let the task progress.** Boan handles execution and verification. Add requirements or pause when needed; decisions and permission requests remain yours.
+3. **Review the result.** Open the delivered files, inspect verification evidence, then confirm completion or request changes.
+
+![English workbench showing a CSV export result, verification status and task composer](docs/images/workbench-en.png)
+
+*The workbench keeps the result, verification and acceptance controls together. All screenshots show the actual UI rendered with synthetic English test data. Project names, paths, model labels and outcomes are examples; no real accounts or private project data are shown.*
+
 ## What it does
 
 - Switch projects directly while other projects keep working. Drafts and task contexts stay separate.
@@ -17,6 +29,16 @@ This is the first public MVP, version **0.8.1**. It is under active development.
 - Connect via ChatGPT/Codex sign-in, Claude sign-in, or a supported API service. Availability and usage depend on your provider and account.
 
 Boan is an independent project, not affiliated with OpenAI or Anthropic. Provider sign-in uses upstream components and is subject to their availability and terms.
+
+## Project views
+
+**Task board — see what needs attention, what is progressing and what is complete.** Open a task to return to its workbench context.
+
+![English task board with sample tasks grouped by status](docs/images/task-board-en.png)
+
+**All projects — find decisions and results across projects.** Switch projects directly while other work continues in the background. Light and dark appearances are available.
+
+![English project overview in light appearance with three sample projects](docs/images/projects-en.png)
 
 ## Run locally
 

@@ -37,3 +37,10 @@ boan-inputs/
 !.env.example
 !/docs/project-agent-spec.md
 !/docs/testing.md
+
+# Public README screenshots: reviewed, synthetic English data only.
+!/docs/images/
+/docs/images/*
+!/docs/images/workbench-en.png
+!/docs/images/task-board-en.png
+!/docs/images/projects-en.png
