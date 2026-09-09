@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startRuntime } from './runtime.mjs';
+import { deepseekModels } from '../shared/deepseek.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 if (fs.existsSync(path.join(root, '.env'))) process.loadEnvFile(path.join(root, '.env'));
@@ -11,7 +12,7 @@ const projectPath = mode === 'demo' ? path.join(dataDir, 'project') : process.en
 if (!projectPath || !path.isAbsolute(projectPath)) throw new Error('真实执行请设置 WORKBENCH_PROJECT 为项目绝对路径；无需模型账号体验请运行 npm run demo。');
 const runtime = await startRuntime({
   mode, dataDir, projectPath, distDir: path.join(root, 'dist'), port: Number(process.env.PORT || 4317),
-  provider: process.env.WORKBENCH_PROVIDER || 'anthropic', model: process.env.WORKBENCH_MODEL || 'claude-sonnet-4-5',
+  provider: process.env.WORKBENCH_PROVIDER || 'anthropic', model: process.env.WORKBENCH_MODEL || (process.env.WORKBENCH_PROVIDER === 'deepseek' ? deepseekModels[0] : 'claude-sonnet-4-5'),
   baseUrl: process.env.WORKBENCH_BASE_URL, apiKey: process.env.WORKBENCH_API_KEY,
   verifyCommand: mode === 'demo' ? undefined : process.env.WORKBENCH_VERIFY_COMMAND,
   maxTurns: Number(process.env.WORKBENCH_MAX_TURNS || 30), runTimeoutMs: Number(process.env.WORKBENCH_RUN_TIMEOUT_MS || 3600000),

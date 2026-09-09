@@ -2,6 +2,8 @@ import { t as tr, localeTag } from './i18n.mjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { Select } from './Select.jsx';
+import { ModelSelect } from './ModelSelect.jsx';
+import { deepseekModels } from '../shared/deepseek.mjs';
 
 const blank = { name: '', provider: 'openai', baseUrl: '', models: '', keyStorage: 'encrypted', apiKey: '' };
 export function ProviderSettings({onDirtyChange,registerSave}) {
@@ -28,9 +30,9 @@ export function ProviderSettings({onDirtyChange,registerSave}) {
     </div>)}
     {editing&&<div className="provider-editor" role="group" aria-label={tr("配置模型服务")} onKeyDown={e=>{if(e.key==='Enter'&&!e.defaultPrevented&&e.target.tagName==='INPUT'){e.preventDefault();void save();}}}>
       <label className="settings-field">{tr("服务名称")}<input aria-label={tr("服务名称")} value={editing.name} onChange={e=>set('name',e.target.value)} placeholder={tr("例如 工作账号")}/></label>
-      <div className="settings-field">{tr("厂商")}<Select label={tr("厂商")} value={editing.provider} disabled={busy||Boolean(editing.id)} onChange={v=>set('provider',v)} options={[{value:'openai',label:'OpenAI'},{value:'anthropic',label:'Anthropic'},{value:'custom',label:tr("OpenAI 兼容服务")}]}/></div>
-      <label className="settings-field">{tr("服务端点")}<input aria-label={tr("服务端点")} value={editing.baseUrl} disabled={Boolean(editing.id)} onChange={e=>set('baseUrl',e.target.value)} placeholder={editing.provider==='anthropic'?tr("留空使用 Anthropic 官方地址"):tr("留空使用 OpenAI 官方地址")}/></label>
-      <label className="settings-field">{tr("模型 ID")}<textarea aria-label={tr("模型 ID")} value={editing.models} onChange={e=>set('models',e.target.value)} placeholder={tr("每行一个模型 ID")} rows={3}/></label>
+      <div className="settings-field">{tr("厂商")}<Select label={tr("厂商")} value={editing.provider} disabled={busy||Boolean(editing.id)} onChange={v=>setEditing(p=>({...p,provider:v,baseUrl:'',apiKey:'',name:p.name || (v==='deepseek'?'DeepSeek':''),models:v==='deepseek'?deepseekModels.join('\n'):''}))} options={[{value:'openai',label:'OpenAI'},{value:'anthropic',label:'Anthropic'},{value:'deepseek',label:'DeepSeek'},{value:'custom',label:tr("OpenAI 兼容服务")}]}/></div>
+      <label className="settings-field">{tr("服务端点")}<input aria-label={tr("服务端点")} value={editing.baseUrl} disabled={Boolean(editing.id)} onChange={e=>set('baseUrl',e.target.value)} placeholder={editing.provider==='deepseek'?tr("留空使用 DeepSeek 官方地址"):editing.provider==='custom'?'https://example.com/v1':editing.provider==='anthropic'?tr("留空使用 Anthropic 官方地址"):tr("留空使用 OpenAI 官方地址")}/></label>
+      <div className="settings-field">{tr("模型")}<ModelSelect label={tr("模型")} provider={editing.provider} multiple value={editing.models.split(/[\n,]/).map(v=>v.trim()).filter(Boolean)} onChange={values=>set('models',values.join('\n'))} disabled={busy}/></div>
       <label className="settings-field">{tr("服务 API Key")}<input aria-label={tr("服务 API Key")} type="password" autoComplete="off" value={editing.apiKey} onChange={e=>set('apiKey',e.target.value)} placeholder={editing.hasApiKey?tr("已保存；留空保留原密钥"):tr("填写此厂商的 API Key")}/></label>
       <label className="settings-check"><input type="checkbox" checked={editing.keyStorage==='session'} onChange={e=>set('keyStorage',e.target.checked?'session':'encrypted')}/>{tr("仅本次运行保存服务密钥")}</label>
       <p className="settings-description">{tr("默认使用系统加密存储，密钥保存在项目外，不随项目上传。")}</p>

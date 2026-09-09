@@ -8,6 +8,7 @@ test('设置按分类展示，保留未保存字段，添加项目仅两步，�
   await page.addInitScript(({ state, defaults }) => {
     window.savedSettings = [];
     window.desktop = {
+      getModelCatalog: async () => [{id:'new-model',name:'New model'}],
       getSettings: async () => ({ ...defaults, mode: 'pi', projectPath: '/workspace/my-project', version: '0.4.8', hasApiKey: true }),
       onCommand: callback => { window.settingsCommand = callback; return () => {}; },
       chooseProject: async () => '/workspace/new-project',
@@ -28,7 +29,7 @@ test('设置按分类展示，保留未保存字段，添加项目仅两步，�
   await page.getByText('高级设置', { exact: true }).click();
   await page.getByLabel('默认验证命令', { exact: true }).fill('npm test');
   await nav.getByRole('button', { name: '项目模型', exact: true }).click();
-  await page.getByLabel('模型名称', { exact: true }).fill('new-model');
+  await page.getByRole('combobox',{name:'模型名称',exact:true}).click();await page.getByRole('textbox',{name:'搜索模型',exact:true}).fill('new');await page.getByRole('option',{name:/new-model/}).click();
   await page.getByLabel('API Key', { exact: true }).fill('public-settings-fixture');
   await nav.getByRole('button', { name: '通用', exact: true }).click();
   await page.getByLabel('任务需要处理时通知我').check();await expect.poll(()=>page.evaluate(()=>window.savedPreferences?.notifications)).toBe(true);
@@ -37,7 +38,7 @@ test('设置按分类展示，保留未保存字段，添加项目仅两步，�
   await expect(page.getByRole('button', { name: '保存并应用' })).toHaveCount(0);
   await nav.getByRole('button', { name: '项目模型', exact: true }).click();
   await expect(page.getByLabel('API Key', { exact: true })).toHaveValue('public-settings-fixture');
-  await expect(page.getByLabel('模型名称', { exact: true })).toHaveValue('new-model');
+  await expect(page.getByRole('combobox', { name: '模型名称', exact: true })).toContainText('new-model');
   await page.setViewportSize({ width: 960, height: 720 });
   await page.screenshot({ path: 'docs/screenshots/settings-light.png' });
   await page.getByRole('button', { name: '保存并应用' }).click();
@@ -69,7 +70,7 @@ test('设置按分类展示，保留未保存字段，添加项目仅两步，�
   await expect(page.getByRole('button', { name: '下一步' })).toBeDisabled();
   await page.getByRole('button', { name: '选择文件夹' }).click();
   await page.getByRole('button', { name: '下一步' }).click();
-  await expect(page.getByLabel('模型名称', { exact: true })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: '模型名称', exact: true })).toBeVisible();
   await page.getByRole('navigation', { name: '添加项目步骤' }).getByRole('button', { name: '项目', exact: true }).click();
   await expect(page.getByLabel('项目文件夹', { exact: true })).toHaveValue('/workspace/new-project');
 });

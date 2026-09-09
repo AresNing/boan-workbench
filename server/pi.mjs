@@ -9,11 +9,12 @@ import {eventOperations} from './management.mjs';
 import {auxiliarySchema} from './auxiliary.mjs';
 import { rememberChange } from './artifact-changes.mjs';
 import { imageTypes, boundaries } from './attachments.mjs';
+import { deepseekBaseUrl, deepseekCompat } from '../shared/deepseek.mjs';
 
 const result = value => ({ content: [{ type: 'text', text: typeof value === 'string' ? value : JSON.stringify(value) }], details: {} });
 const str = () => Type.String({ maxLength: 12000 });
 export class PiBackend {
-  constructor(config) { this.config = config; this.sessions = new Map(); this.workers = new Map(); }
+  constructor(config) { this.config = config.provider === 'deepseek' ? { ...config, apiKey: config.apiKey || process.env.DEEPSEEK_API_KEY } : config; this.sessions = new Map(); this.workers = new Map(); }
   modelError(session) {
     const last = session.messages.findLast(message => message.role === 'assistant');
     if (last?.stopReason !== 'error') return;
@@ -31,21 +32,32 @@ export class PiBackend {
       modelsStorePath: path.join(c.dataDir, 'models-cache.json'), refreshOnCreate: false,
     });
     const known = this.runtime.getModel(c.provider, c.model);
-    if (c.baseUrl || c.api) {
+    if (c.baseUrl || c.api || c.provider === 'deepseek') {
       const localWithoutKey = !c.apiKey && Boolean(c.baseUrl) && ['localhost', '127.0.0.1', '[::1]'].includes(new URL(c.baseUrl).hostname);
       this.runtime.registerProvider('workbench', {
-        baseUrl: c.baseUrl || (c.provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com/v1'), api: c.api || (c.provider === 'anthropic' ? 'anthropic-messages' : 'openai-completions'), apiKey: 'WORKBENCH_API_KEY', authHeader: !localWithoutKey,
-        models: [{ id: c.model, name: c.model, reasoning: Boolean(known?.reasoning || c.effort), ...(known?.thinkingLevelMap ? { thinkingLevelMap: known.thinkingLevelMap } : {}), ...(c.provider === 'anthropic' && known?.compat ? { compat: known.compat } : {}), input: ['text'], cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, contextWindow: 128000, maxTokens: known?.maxTokens || 16384 }],
+        baseUrl: c.baseUrl || (c.provider === 'deepseek' ? deepseekBaseUrl : c.provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com/v1'), api: c.api || (c.provider === 'anthropic' ? 'anthropic-messages' : 'openai-completions'), apiKey: 'WORKBENCH_API_KEY', authHeader: !localWithoutKey,
+        models: [{
+          id: c.model, name: c.model,
+          reasoning: Boolean(known?.reasoning || c.effort || c.provider === 'deepseek' && c.model === 'deepseek-reasoner'),
+          ...(known?.thinkingLevelMap ? { thinkingLevelMap: known.thinkingLevelMap } : {}),
+          ...(c.provider === 'deepseek' ? { compat: { ...known?.compat, ...deepseekCompat } }
+            : c.provider === 'anthropic' && known?.compat ? { compat: known.compat } : {}),
+          input: c.provider === 'deepseek' ? known?.input || ['text'] : ['text'],
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+          contextWindow: c.provider === 'deepseek' ? known?.contextWindow || 128000 : 128000,
+          maxTokens: known?.maxTokens || 16384,
+        }],
       });
       if (localWithoutKey) await this.runtime.setRuntimeApiKey('workbench', 'local-service-no-key');
     }
-    const provider = c.baseUrl || c.api ? 'workbench' : c.provider;
-    if (c.apiKey) await this.runtime.setRuntimeApiKey(provider, c.apiKey);
+    const provider = c.baseUrl || c.api || c.provider === 'deepseek' ? 'workbench' : c.provider;
+    const apiKey = c.apiKey;
+    if (apiKey) await this.runtime.setRuntimeApiKey(provider, apiKey);
     this.model = this.runtime.getModel(provider, c.model);
     if (!this.model) throw new Error(`未找到模型 ${provider}/${c.model}，请检查 WORKBENCH_PROVIDER 与 WORKBENCH_MODEL。`);
     if (!(await this.runtime.checkAuth(provider))?.configured && !this.runtime.hasConfiguredAuth(provider)) {
       // Availability APIs vary by provider; session prompting is authoritative for auth.
-      if (!c.apiKey && !process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) throw new Error('请通过环境变量配置模型密钥，再启动真实执行模式。');
+      if (!apiKey && !process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY) throw new Error('请通过环境变量配置模型密钥，再启动真实执行模式。');
     }
   }
   async session(key, customTools, prompt, signal, onEvent, sessionDir) {
@@ -66,6 +78,11 @@ export class PiBackend {
         if (this.config.effort) payload.reasoning_effort = this.config.effort;
         if (this.config.speed && this.config.speed !== 'standard') payload.service_tier = this.config.speed;
         else if (this.config.provider === 'openai') payload.service_tier = 'default';
+      } else if (this.config.provider === 'deepseek') {
+        // Keep the provider default thinking mode, including the legacy reasoner alias.
+        payload.thinking = { type: this.config.model === 'deepseek-chat' && !this.config.effort ? 'disabled' : 'enabled' };
+        if (this.config.effort) payload.reasoning_effort = this.config.effort;
+        else delete payload.reasoning_effort;
       } else if (this.config.provider === 'anthropic' && this.config.speed === 'fast') payload.speed = 'fast';
       return payload;
     };

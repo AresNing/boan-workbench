@@ -1,4 +1,9 @@
 {
+  "完成选择": "Done",
+  "模型列表加载失败": "Could not load models",
+  "使用此模型 ID": "Use this model ID",
+  "搜索模型": "Search models",
+  "模型": "Models",
   "外观": "Appearance",
   "跟随系统": "System",
   "浅色外观": "Light",
@@ -317,6 +322,8 @@
   "OpenAI 兼容服务": "OpenAI-compatible service",
   "服务端点": "Service endpoint",
   "留空使用 Anthropic 官方地址": "Leave blank for Anthropic's official endpoint",
+  "留空使用 DeepSeek 官方地址": "Leave blank for DeepSeek's official endpoint",
+  "请选择 OpenAI、Anthropic、DeepSeek 或兼容服务": "Choose OpenAI, Anthropic, DeepSeek or a compatible service",
   "留空使用 OpenAI 官方地址": "Leave blank for OpenAI's official endpoint",
   "模型 ID": "Model IDs",
   "每行一个模型 ID": "One model ID per line",

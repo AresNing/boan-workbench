@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('desktop', Object.freeze({
     return () => ipcRenderer.removeListener('desktop:projects', listener);
   },
   getModelProfiles: () => ipcRenderer.invoke('desktop:get-model-profiles'),
+  getModelCatalog: provider => ipcRenderer.invoke('desktop:get-model-catalog', provider),
   saveModelProfile: input => ipcRenderer.invoke('desktop:save-model-profile', input),
   removeModelProfile: id => ipcRenderer.invoke('desktop:remove-model-profile', id),
   refreshModels: () => ipcRenderer.invoke('desktop:refresh-models'),

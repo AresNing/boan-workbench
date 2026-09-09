@@ -220,6 +220,7 @@ else {
     protocol.handle('boan', workbenchProtocol({ distDir: path.join(here, '..', 'dist'), getBackend: id => pool.entries.get(id || activeId)?.runtime, accessToken, fetchBackend: (...args) => net.fetch(...args) }));
     handler('desktop:get-settings', async () => ({ ...settings.public(), version: app.getVersion(), packaged: app.isPackaged, needsClaudeLogin: settings.data.settings.mode==='pi' && settings.data.settings.connection==='claude' && !(await claude.status().catch(()=>({loggedIn:false}))).loggedIn, needsChatGPTLogin: settings.data.settings.mode === 'pi' && settings.data.settings.connection === 'chatgpt' && !(await chatgpt.status().catch(() => ({ loggedIn: false }))).loggedIn }));
     handler('desktop:get-model-profiles', () => modelProfiles.public());
+    handler('desktop:get-model-catalog', provider => modelProfiles.catalogModels(provider));
     handler('desktop:save-model-profile', async input => { const result = await modelProfiles.save(input); await refreshModelOptions(); return result; });
     handler('desktop:remove-model-profile', async id => { const result = await modelProfiles.remove(id); await refreshModelOptions(); return result; });
     handler('desktop:refresh-models', () => refreshModelOptions(true));

@@ -32,11 +32,17 @@ export class ModelProfiles {
   hasKey(profile) { return profile.legacy ? profile.keyStorage === 'session' ? Boolean(this.settings.sessionKeys.get(this.settings.data)?.get(credentialId(profile))) : Boolean(this.settings.data.encryptedKeys[credentialId(profile)]) : profile.keyStorage === 'session' ? this.keys.has(profile.id) : Boolean(profile.encryptedKey); }
   public() { return this.data.profiles.map(p => ({ id: p.id, name: p.name, provider: p.provider, baseUrl: p.baseUrl, models: p.models, keyStorage: p.keyStorage, legacy: Boolean(p.legacy), hasApiKey: this.hasKey(p), available: this.hasKey(p) || local(p.baseUrl) })); }
   options() { return this.public().flatMap(p => p.models.map(model => ({ profileId: p.id, model, label: model, provider: p.name, connection: 'api', available: p.available, ...apiCapabilities(p.provider, model, this.catalog) }))); }
+  catalogModels(provider) {
+    if (!['openai', 'anthropic', 'deepseek', 'google', 'custom'].includes(provider)) throw Error('模型供应商无效');
+    const models = new Map(this.catalog.getModels(provider === 'custom' ? 'openai' : provider).map(m => [m.id, { id: m.id, name: m.name }]));
+    for (const profile of this.data.profiles.filter(p => p.provider === provider)) for (const id of profile.models) if (!models.has(id)) models.set(id, { id, name: id });
+    return [...models.values()];
+  }
   save(input) { return this.serialized(async () => {
     const old = input.id ? this.data.profiles.find(p => p.id === input.id) : null;
     if (input.id && !old) throw Error('模型服务不存在');
     if (old?.legacy) throw Error('已有项目连接请在项目默认连接中修改，或添加新的模型服务');
-    if (!['openai', 'anthropic', 'custom'].includes(input.provider)) throw Error('请选择 OpenAI、Anthropic 或兼容服务');
+    if (!['openai', 'anthropic', 'deepseek', 'custom'].includes(input.provider)) throw Error('请选择 OpenAI、Anthropic、DeepSeek 或兼容服务');
     if (typeof input.name !== 'string' || !input.name.trim() || input.name.length > 80) throw Error('请填写服务名称');
     const models = [...new Set((typeof input.models === 'string' ? input.models.split(/[\n,]/) : input.models || []).map(m => typeof m === 'string' ? m.trim() : ''))].filter(Boolean);
     if (!models.length || models.length > 50 || models.some(m => m.length > 160 || /\s/.test(m))) throw Error('请填写有效模型 ID，每行一个，最多 50 个');

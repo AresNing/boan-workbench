@@ -4,7 +4,7 @@
 
 A local, task-first AI workbench for macOS. Assign a goal, review decisions and results, and let the workbench handle execution and verification. **Tasks advance automatically; you do not manage chat sessions.**
 
-This is the first public MVP, version **0.8.1**. It is under active development.
+This is the first public MVP, version **0.8.3**. It is under active development.
 
 ## About Boan
 
@@ -63,6 +63,14 @@ npm run desktop
 Choose **Settings → Project** to select your folder. Configure the project's default connection under **Project model**, and manage shared sign-in and API providers under **Accounts & services**. Change language under **General → Language**. The initial language is Chinese; English and System are available.
 
 For a browser-only API setup, copy `.env.example` to `.env`, fill in your local project and provider configuration, then run `npm start`. Never commit `.env` or credentials.
+
+## DeepSeek API
+
+In **Settings → Accounts & services → Add provider**, choose **DeepSeek**, enter your API key, and save. The form selects `deepseek-v4-flash` and `deepseek-v4-pro` by default. Use the searchable model dropdown to select one or more models from the bundled provider catalog. Project defaults use the same searchable picker for a single model. Saved model IDs remain selectable. Leave the endpoint blank for `https://api.deepseek.com`. Select the saved model in the task composer, or choose DeepSeek under **Project model** for the project's default connection.
+
+For browser-only use, set `WORKBENCH_PROVIDER=deepseek`, `WORKBENCH_MODEL=deepseek-v4-flash`, and `DEEPSEEK_API_KEY` (or `WORKBENCH_API_KEY`) in your local `.env`. The adapter supports streaming, tool calls, and reasoning replay. Available reasoning levels come from the bundled model catalog; default mode follows DeepSeek thinking defaults. Existing legacy `deepseek-chat` and `deepseek-reasoner` configurations remain supported when accepted by your endpoint. Custom compatible services allow private IDs to be added from the search field.
+
+Model IDs and protocol were checked against [DeepSeek's official API documentation](https://api-docs.deepseek.com/) on 2026-09-09. Integration tests use a strict local fixture, not a live paid account.
 
 ## Execution and permissions
 

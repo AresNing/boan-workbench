@@ -1,6 +1,7 @@
 import { t as tr, localeTag } from './i18n.mjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { Select } from './Select.jsx';
+import { ModelSelect } from './ModelSelect.jsx';
 import { FolderOpen, Loader2, ShieldCheck, ExternalLink, SlidersHorizontal, Bot } from 'lucide-react';
 
 import './settings-layout.css';
@@ -8,6 +9,7 @@ import { ClaudeConnection } from './ClaudeConnection.jsx';
 import { Language } from './Language.jsx';
 import { Appearance } from './Appearance.jsx';
 import { ProviderSettings } from './ProviderSettings.jsx';
+import { deepseekBaseUrl, deepseekModels } from '../shared/deepseek.mjs';
 
 export function DesktopSettings({ adding = false, permissionsPanel, initialSection, onClose, registerCloseGuard }) {
   const original=useRef(null),providerSave=useRef(null),pendingClose=useRef(null);
@@ -119,9 +121,9 @@ export function DesktopSettings({ adding = false, permissionsPanel, initialSecti
         <button type="button" className={config.connection === 'api' ? 'mode-option active' : 'mode-option'} onClick={() => set('connection', 'api')}><strong>API Key</strong><span>{tr("按模型服务的 API 用量计费")}</span></button>
       </div>
       {config.connection === 'claude' ? <>{adding ? <ClaudeConnection value={config.claudeModel} onChange={v=>set('claudeModel',v)} onStatus={setClaudeReady}/> : <><button type="button" className="text-button" onClick={()=>setTab('accounts')}>{tr("管理 Claude 账号")}</button><div className="settings-field">{tr("Claude 模型")}<Select label={tr("Claude 模型")} value={config.claudeModel||''} onChange={v=>set('claudeModel',v)} options={[{value:'',label:tr("账号默认模型")},...(config.claudeModel&&!claudeModels.some(m=>m.id===config.claudeModel)?[{value:config.claudeModel,label:config.claudeModel}]:[]),...claudeModels.filter(m=>m.id!=='default').map(m=>({value:m.id,label:m.name}))]}/></div></>}</> : config.connection === 'chatgpt' ? <>{adding ? chatgptConnection : <button type="button" className="text-button" onClick={()=>setTab('accounts')}>{tr("管理 ChatGPT 账号")}</button>}        <div className="settings-field">{tr("Codex 模型")}<Select label={tr("Codex 模型")} value={config.chatgptModel || ''} onChange={value => set('chatgptModel', value)} options={[{ value: '', label: tr("自动选择账号默认模型") }, ...(config.chatgptModel && !models.some(m => m.id === config.chatgptModel) ? [{ value: config.chatgptModel, label: config.chatgptModel }] : []), ...models.map(m => ({ value: m.id, label: m.name + (m.isDefault ? tr("（默认）") : '') }))]}/></div></> : <>
-      <div className="settings-grid"><div className="settings-field">{tr("模型供应商")}<Select label={tr("模型供应商")} value={config.provider} onChange={value => set('provider', value)} options={[{ value: 'anthropic', label: 'Anthropic' }, { value: 'openai', label: 'OpenAI' }, { value: 'google', label: 'Google' }, { value: 'custom', label: tr("自定义兼容服务") }]}/></div>
-      <label className="settings-field">{tr("模型名称")}<input aria-label={tr("模型名称")} value={config.model} onChange={e => set('model', e.target.value)} required placeholder={tr("填写服务支持的模型 ID")}/></label></div>
-      <label className="settings-field">{tr("服务地址 ")}<span className="field-optional">{config.provider === 'custom' ? tr("必填") : tr("可选，留空使用供应商默认地址")}</span><input aria-label={tr("服务地址")} value={config.baseUrl} onChange={e => set('baseUrl', e.target.value)} placeholder="https://example.com/v1" required={config.provider === 'custom'}/></label>
+      <div className="settings-grid"><div className="settings-field">{tr("模型供应商")}<Select label={tr("模型供应商")} value={config.provider} onChange={value => { setConfig(c=>({...c,provider:value,baseUrl:'',model:value==='deepseek'?deepseekModels[0]:'',hasApiKey:false}));setApiKey('');setClearApiKey(false); }} options={[{ value: 'anthropic', label: 'Anthropic' }, { value: 'openai', label: 'OpenAI' }, { value: 'deepseek', label: 'DeepSeek' }, { value: 'google', label: 'Google' }, { value: 'custom', label: tr("自定义兼容服务") }]}/></div>
+      <div className="settings-field">{tr("模型名称")}<ModelSelect label={tr("模型名称")} provider={config.provider} value={config.model} onChange={value=>set('model',value)} disabled={busy}/></div></div>
+      <label className="settings-field">{tr("服务地址 ")}<span className="field-optional">{config.provider === 'custom' ? tr("必填") : tr("可选，留空使用供应商默认地址")}</span><input aria-label={tr("服务地址")} value={config.baseUrl} onChange={e => set('baseUrl', e.target.value)} placeholder={config.provider==='deepseek'?deepseekBaseUrl:'https://example.com/v1'} required={config.provider === 'custom'}/></label>
       <label className="settings-field">API Key<input aria-label="API Key" type="password" autoComplete="off" value={apiKey} onChange={e => { setApiKey(e.target.value); setClearApiKey(false); }} placeholder={config.hasApiKey ? tr("已提供；留空保留本次可用密钥") : tr("填写模型服务的密钥")}/></label>
       <label className="settings-check"><input type="checkbox" checked={config.keyStorage === 'session'} onChange={e => set('keyStorage', e.target.checked ? 'session' : 'encrypted')}/>{tr("仅本次运行使用密钥（退出后需重新填写）")}</label>
       {config.hasApiKey && <label className="settings-check"><input type="checkbox" checked={clearApiKey} onChange={e => setClearApiKey(e.target.checked)}/>{tr("清除当前供应商已保存的密钥")}</label>}

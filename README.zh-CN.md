@@ -4,7 +4,7 @@
 
 面向 macOS 的本地 AI 工作台。交代目标、处理必要决定、验收成果，其余由工作台衔接执行与验证。**任务自动推进、无需管理会话。**
 
-这是首个开源 MVP，版本 **0.8.1**，仍在持续开发。
+这是首个开源 MVP，版本 **0.8.3**，仍在持续开发。
 
 ## 软件介绍
 
@@ -63,6 +63,14 @@ npm run desktop
 在「设置 → 项目」选择目录；「项目模型」设置默认连接；「账号与服务」管理共享登录与 API 服务；「通用 → 语言」切换语言。首次默认中文。
 
 浏览器 API 模式可复制 `.env.example` 为 `.env`，填写本机项目路径和服务配置，然后运行 `npm start`。不要提交 `.env` 或凭据。
+
+## 接入 DeepSeek API
+
+打开 **设置 → 账号与服务 → 添加厂商**，选择 **DeepSeek**，填写 API Key 并保存。默认勾选 `deepseek-v4-flash` 和 `deepseek-v4-pro`，可以展开下拉框搜索、勾选模型。项目默认模型也使用可搜索的单选下拉框。列表来自内置厂商目录，已保存的模型会保留。服务端点留空时使用 `https://api.deepseek.com`。保存后在任务输入框选择该模型；也可以在「项目模型」中将 DeepSeek 设为项目默认连接。
+
+浏览器模式在本地 `.env` 配置 `WORKBENCH_PROVIDER=deepseek`、`WORKBENCH_MODEL=deepseek-v4-flash` 和 `DEEPSEEK_API_KEY`（或 `WORKBENCH_API_KEY`）。支持流式响应、工具调用和思考内容回传；思考强度按内置模型目录显示，默认沿用 DeepSeek 的思考模式。已有 `deepseek-chat` 或 `deepseek-reasoner` 配置仍可沿用，实际可用性以服务端为准。自定义兼容服务支持在搜索框中添加私有模型 ID。
+
+模型 ID 与协议于 2026-09-09 核对自 [DeepSeek 官方文档](https://api-docs.deepseek.com/)。集成验证使用严格的本地模拟服务，尚未使用真实付费账号验收。
 
 ## 执行与权限
 

@@ -18,6 +18,7 @@ export function coordinationHttp(body,res) {
     event('content_block_stop',{index:0});event('message_delta',{delta:{stop_reason:finished?'end_turn':'tool_use',stop_sequence:null},usage:{output_tokens:10}});event('message_stop',{});res.end();
   }else{
     const chunk=(delta,finish_reason=null)=>res.write(`data: ${JSON.stringify({id:'coordination',object:'chat.completion.chunk',created:1,model:body.model,choices:[{index:0,delta,finish_reason}]})}\n\n`);
+    if(body.thinking?.type==='enabled')chunk({role:'assistant',reasoning_content:'fixture reasoning'});
     chunk(finished?{role:'assistant',content:'安排已提交'}:{role:'assistant',tool_calls:[{index:0,id:'coordination-tool',type:'function',function:{name,arguments:JSON.stringify(operation)}}]});chunk({},finished?'stop':'tool_calls');res.end('data: [DONE]\n\n');
   }
   return true;

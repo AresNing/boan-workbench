@@ -70,7 +70,7 @@ test('macOS 桌面应用：独立 Node、设置切换、真实 pi 工具、验�
   await page.getByRole('navigation', { name: '设置分类' }).getByRole('button', { name: '项目模型' }).click();
   await page.getByRole('combobox', { name: '模型供应商' }).click();
   await page.getByRole('option', { name: '自定义兼容服务', exact: true }).click();
-  await page.getByRole('textbox', { name: '模型名称' }).fill('desktop-test');
+  await page.getByRole('combobox', { name: '模型名称' }).click();await page.getByRole('textbox',{name:'搜索模型',exact:true}).fill('desktop-test');await page.getByRole('option',{name:/desktop-test/}).click();
   await page.getByRole('textbox', { name: '服务地址' }).fill(baseUrl);
   const saveBounds = await page.getByRole('button', { name: '保存并应用' }).boundingBox();
   const dialogBounds = await page.locator('dialog').boundingBox();
